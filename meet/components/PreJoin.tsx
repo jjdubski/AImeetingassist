@@ -14,6 +14,7 @@ import styles from '../styles/Home.module.css';
 
 export type LocalUserChoices = {
   username: string;
+  email: string;
   videoEnabled: boolean;
   audioEnabled: boolean;
   videoDeviceId: string;
@@ -23,6 +24,7 @@ export type LocalUserChoices = {
 
 const DEFAULT_USER_CHOICES = {
   username: '',
+  email: '',
   videoEnabled: true,
   audioEnabled: true,
   videoDeviceId: '',
@@ -80,6 +82,8 @@ export type PreJoinProps = Omit<React.HTMLAttributes<HTMLDivElement>, 'onSubmit'
   camLabel?: string;
 
   userLabel?: string;
+
+  emailLabel?: string;
 };
 
 function usePreviewDevice<T extends LocalVideoTrack | LocalAudioTrack>(
@@ -205,11 +209,15 @@ export const PreJoin = ({
   micLabel = 'Microphone',
   camLabel = 'Camera',
   userLabel = 'Username',
+  emailLabel = 'Email',
   ...htmlProps
 }: PreJoinProps) => {
   const [userChoices, setUserChoices] = React.useState(DEFAULT_USER_CHOICES);
   const [username, setUsername] = React.useState(
     defaults.username ?? DEFAULT_USER_CHOICES.username,
+  );
+  const [email, setEmail] = React.useState(
+    defaults.email ?? DEFAULT_USER_CHOICES.email,
   );
   const [videoEnabled, setVideoEnabled] = React.useState<boolean>(
     defaults.videoEnabled ?? DEFAULT_USER_CHOICES.videoEnabled,
@@ -265,6 +273,7 @@ export const PreJoin = ({
   React.useEffect(() => {
     const newUserChoices = {
       username: username,
+      email: email,
       videoEnabled: videoEnabled,
       videoDeviceId: video.selectedDevice?.deviceId ?? '',
       audioEnabled: audioEnabled,
@@ -275,6 +284,7 @@ export const PreJoin = ({
     setIsValid(handleValidation(newUserChoices));
   }, [
     username,
+    email,
     videoEnabled,
     video.selectedDevice,
     handleValidation,
@@ -366,6 +376,15 @@ export const PreJoin = ({
           type="text"
           placeholder={userLabel}
           onChange={(inputEl) => setUsername(inputEl.target.value)}
+          autoComplete="off"
+        />
+        <input
+          className="lk-form-control"
+          id="email"
+          name="email"
+          type="text"
+          placeholder={emailLabel}
+          onChange={(inputEl) => setEmail(inputEl.target.value)}
           autoComplete="off"
         />
         <button
