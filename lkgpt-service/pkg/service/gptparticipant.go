@@ -436,12 +436,13 @@ func (p *GPTParticipant) onTranscriptionReceived(result RecognizeResult, rp *lks
 
 				// KITT finished speaking, check if the last sentence was a question.
 				// If so, auto activate the current participant
-				if strings.HasSuffix(answer, "?") {
+				/*if strings.HasSuffix(answer, "?") {
 					// Checking this suffix should be enough
 					p.activateParticipant(rp)
 				} else {
 					p.sendStatePacket(state_Idle)
-				}
+				}*/
+				p.sendStatePacket(state_Idle)
 
 				botAnswer := &SpeechEvent{
 					ParticipantName: BotIdentity,
