@@ -1,0 +1,19 @@
+# LiveGPT
+#
+# The following env variables must be set:
+# GOOGLE_APPLICATION_CREDENTIALS musts be set to use the TTS & STT
+# OPENAI_API_KEY musts be set to use the ChatCompletion
+
+development: true
+logging:
+  json: false
+  level: debug
+
+livekit:
+  url: wss://my-livekit-project.livekit.cloud
+  api_key: APISzatJWKXfB5a
+  secret_key: sDH3u9WWUqX9FvoW1xZ20F9NereYOwlLyTqqb4jWIX2
+
+openai_api_key: your-openai-api-key
+
+port: 3001
