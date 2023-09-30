@@ -61,7 +61,8 @@ func (c *ChatCompletion) Complete(ctx context.Context, events []*MeetingEvent, p
 	}
 	// participantNames := sb.String()
 	// comp := participantNames + "\nThe transcription of the meeting is:\n" + prompt.Text
-	comp := prompt.Text
+	comp := sb.String()
+	comp = prompt.Text
 	fmt.Println("comp:", comp)
 	sb.Reset()
 
