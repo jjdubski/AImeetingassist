@@ -33,11 +33,17 @@ func main() {
 				Usage:   "LiveGPT yaml config body",
 				EnvVars: []string{"LIVEGPT_CONFIG_BODY"},
 			},
+			/*
+				Here is the path to GCP service start
+			*/
 			&cli.StringFlag{
 				Name:    "gcp-credentials-path",
 				Usage:   "Path to GCP credentials file",
 				EnvVars: []string{"GOOGLE_APPLICATION_CREDENTIALS"},
 			},
+			/*
+				Here is the path 
+			*/
 			&cli.StringFlag{
 				Name:    "gcp-credentials-body",
 				Usage:   "GCP credentials json body",
