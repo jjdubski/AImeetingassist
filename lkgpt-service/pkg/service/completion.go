@@ -68,7 +68,7 @@ func (c *ChatCompletion) Complete(ctx context.Context, events []*MeetingEvent, p
 	// -H "Authorization: Bearer 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
 
 	url := "https://api-inference.huggingface.co/models/knkarthick/MEETING_SUMMARY"
-	payload := []byte(fmt.Sprintf(`{"inputs": "%s"}`, participantNames+"\n"+prompt.Text))
+	payload := []byte(fmt.Sprintf(`{"inputs": "%s"}`, participantNames+"\nThe transcription of the meeting is:\n"+prompt.Text))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
 	if err != nil {
