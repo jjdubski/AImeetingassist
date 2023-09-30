@@ -16,7 +16,6 @@ import (
 	tts "cloud.google.com/go/texttospeech/apiv1"
 	"github.com/pion/webrtc/v3"
 	"github.com/sashabaranov/go-openai"
-	"golang.org/x/exp/slices"
 
 	"github.com/livekit/protocol/livekit"
 	"github.com/livekit/protocol/logger"
@@ -30,8 +29,8 @@ var (
 	BotIdentity = "KITT"
 
 	// Naive trigger/activation implementation
-	GreetingWords = []string{"gpt"}
-	NameWords     = []string{"summarize"}
+	GreetingWords = []string{"summarize"}
+	NameWords     = []string{"meeting"}
 
 	collatedText = ""
 
@@ -345,61 +344,20 @@ func (p *GPTParticipant) onTranscriptionReceived(result RecognizeResult, rp *lks
 	p.lock.Unlock()
 
 	shouldAnswer := false
-	// justActivated := false
-	words := strings.Split(strings.ToLower(strings.TrimSpace(result.Text)), " ")
 
-	// if (words.("gpt summarize")) {
-	// 	p.activeInterim.Store(!result.IsFinal)
-	// 		if activeParticipant != rp {
-	// 			activeParticipant = rp
-	// 			logger.Debugw("activating KITT for participant", "activationText", strings.Join(activationWords, " "), "participant", rp.Identity())
-	// 			p.activateParticipant(rp)
-	// 		}
-	// 	}
-
-	if len(words) >= 2 { // No max length but only check the first 3 words
-		limit := len(words) - 1
-		if limit > ActivationWordsLen {
-			limit = ActivationWordsLen
+	if strings.Contains(result.Text, "summarize meeting") {
+		p.activeInterim.Store(!result.IsFinal)
+		if activeParticipant != rp {
+			activeParticipant = rp
+			logger.Debugw("activating KITT for participant", "activationText", "summarize meeting", "participant", rp.Identity())
+			p.activateParticipant(rp)
 		}
-		activationWords := words[:limit]
+	}
 
-		// Check if text contains at least one GreentingWords
-		greetIndex := -1
-		for _, greet := range GreetingWords {
-			if greetIndex = slices.Index(activationWords, greet); greetIndex != -1 {
-				break
-			}
-		}
-
-		nameIndex := -1
-		for _, name := range NameWords {
-			if nameIndex = slices.Index(activationWords, name); nameIndex != -1 {
-				break
-			}
-		}
-
-		if greetIndex < nameIndex && greetIndex != -1 {
-			// justActivated = true
-			p.activeInterim.Store(!result.IsFinal)
-			if activeParticipant != rp {
-				activeParticipant = rp
-				logger.Debugw("activating KITT for participant", "activationText", strings.Join(activationWords, " "), "participant", rp.Identity())
-				p.activateParticipant(rp)
-			}
-		}
-		// }
-
-		if result.IsFinal {
-			// fmt.Println(rp.Identity(), result.Text)
-			collatedText += rp.Identity() + ": " + result.Text + "\n"
-			fmt.Println(collatedText)
-			shouldAnswer = activeParticipant == rp
-			// if (justActivated || p.activeInterim.Load()) && len(words) <= ActivationWordsLen+1 {
-			// 	// Ignore if the participant stopped speaking after the activation, answer his next sentence
-			// 	shouldAnswer = false
-			// }
-		}
+	if result.IsFinal {
+		collatedText += rp.Identity() + ": " + result.Text + "\n"
+		fmt.Println(collatedText)
+		shouldAnswer = activeParticipant == rp
 	}
 
 	if shouldAnswer {
