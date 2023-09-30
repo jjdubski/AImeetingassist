@@ -518,9 +518,9 @@ func (p *GPTParticipant) answer(events []*MeetingEvent, prompt *SpeechEvent, rp 
 		go func() {
 			defer close(currentCh)
 			defer wg.Done()
-
 			logger.Debugw("synthesizing", "sentence", trimSentence)
 			resp, err := p.synthesizer.Synthesize(p.ctx, trimSentence, tmpLang)
+			fmt.Println(resp, err)
 			if err != nil {
 				logger.Errorw("failed to synthesize", err, "sentence", trimSentence)
 				_ = p.sendErrorPacket("Sorry, an error occured while synthesizing voice data using Google TTS")
