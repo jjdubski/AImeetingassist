@@ -435,64 +435,67 @@ func (p *GPTParticipant) answer(events []*MeetingEvent, prompt *SpeechEvent, rp 
 	})
 
 	sb := strings.Builder{}
-	sentence := stream
+	for {
+		sentence := stream
 
-	// Try to parse the language from the sentence (ChatGPT can provide <en-US>, en-US as a prefix)
-	trimSentence := strings.TrimSpace(sentence)
-	lowerSentence := strings.ToLower(trimSentence)
-	for code, lang := range Languages {
-		prefix1 := strings.ToLower(fmt.Sprintf("<%s>", code))
-		prefix2 := strings.ToLower(code)
+		// Try to parse the language from the sentence (ChatGPT can provide <en-US>, en-US as a prefix)
+		trimSentence := strings.TrimSpace(sentence)
+		lowerSentence := strings.ToLower(trimSentence)
+		for code, lang := range Languages {
+			prefix1 := strings.ToLower(fmt.Sprintf("<%s>", code))
+			prefix2 := strings.ToLower(code)
 
-		if strings.HasPrefix(lowerSentence, prefix1) {
-			trimSentence = trimSentence[len(prefix1):]
-		} else if strings.HasPrefix(lowerSentence, prefix2) {
-			trimSentence = trimSentence[len(prefix2):]
-		} else {
-			continue
+			if strings.HasPrefix(lowerSentence, prefix1) {
+				trimSentence = trimSentence[len(prefix1):]
+			} else if strings.HasPrefix(lowerSentence, prefix2) {
+				trimSentence = trimSentence[len(prefix2):]
+			} else {
+				continue
+			}
+
+			language = lang
+			break
 		}
 
-		language = lang
+		sb.WriteString(trimSentence)
+		sb.WriteString(" ")
+
+		tmpLast := last
+		tmpLang := language
+		currentCh := make(chan struct{})
+
+		wg.Add(1)
+		go func() {
+			defer close(currentCh)
+			defer wg.Done()
+			logger.Debugw("synthesizing", "sentence", trimSentence)
+			fmt.Println(p.synthesizer, p.ctx, trimSentence, tmpLang)
+			resp, err := p.synthesizer.Synthesize(p.ctx, trimSentence, tmpLang)
+			fmt.Println(resp, err)
+			if err != nil {
+				logger.Errorw("failed to synthesize", err, "sentence", trimSentence)
+				_ = p.sendErrorPacket("Sorry, an error occured while synthesizing voice data using Google TTS")
+				return
+			}
+
+			if tmpLast != nil {
+				<-tmpLast // Reorder outputs
+			}
+
+			logger.Debugw("finished synthesizing, queuing sentence", "sentence", trimSentence)
+			err = p.gptTrack.QueueReader(bytes.NewReader(resp.AudioContent))
+			if err != nil {
+				logger.Errorw("failed to queue reader", err, "sentence", trimSentence)
+				return
+			}
+
+			_ = p.sendStatePacket(state_Speaking)
+			wg.Add(1)
+		}()
+
+		last = currentCh
 		break
 	}
-
-	sb.WriteString(trimSentence)
-	sb.WriteString(" ")
-
-	tmpLast := last
-	tmpLang := language
-	currentCh := make(chan struct{})
-
-	wg.Add(1)
-	go func() {
-		defer close(currentCh)
-		defer wg.Done()
-		logger.Debugw("synthesizing", "sentence", trimSentence)
-		fmt.Println(p.synthesizer, p.ctx, trimSentence, tmpLang)
-		resp, err := p.synthesizer.Synthesize(p.ctx, trimSentence, tmpLang)
-		fmt.Println(resp, err)
-		if err != nil {
-			logger.Errorw("failed to synthesize", err, "sentence", trimSentence)
-			_ = p.sendErrorPacket("Sorry, an error occured while synthesizing voice data using Google TTS")
-			return
-		}
-
-		if tmpLast != nil {
-			<-tmpLast // Reorder outputs
-		}
-
-		logger.Debugw("finished synthesizing, queuing sentence", "sentence", trimSentence)
-		err = p.gptTrack.QueueReader(bytes.NewReader(resp.AudioContent))
-		if err != nil {
-			logger.Errorw("failed to queue reader", err, "sentence", trimSentence)
-			return
-		}
-
-		_ = p.sendStatePacket(state_Speaking)
-		wg.Add(1)
-	}()
-
-	last = currentCh
 
 	wg.Wait()
 
