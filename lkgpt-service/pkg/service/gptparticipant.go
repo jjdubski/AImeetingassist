@@ -425,7 +425,7 @@ func (p *GPTParticipant) onTranscriptionReceived(result RecognizeResult, rp *lks
 			go func() {
 				defer p.isBusy.Store(false)
 				_ = p.sendStatePacket(state_Loading)
-
+				fmt.Println("Answering", result.Text)
 				logger.Debugw("answering to", "participant", rp.SID(), "text", result.Text)
 				answer, err := p.answer(events, prompt, rp, transcriber.Language()) // Will send state_Speaking
 				if err != nil {
@@ -520,6 +520,7 @@ func (p *GPTParticipant) answer(events []*MeetingEvent, prompt *SpeechEvent, rp 
 			defer wg.Done()
 
 			logger.Debugw("synthesizing", "sentence", trimSentence)
+			fmt.Println(p.synthesizer, p.ctx, trimSentence, tmpLang)
 			resp, err := p.synthesizer.Synthesize(p.ctx, trimSentence, tmpLang)
 			if err != nil {
 				logger.Errorw("failed to synthesize", err, "sentence", trimSentence)

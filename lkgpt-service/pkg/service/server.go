@@ -56,6 +56,7 @@ func NewLiveGPT(config *config.Config, sttClient *stt.Client, ttsClient *tts.Cli
 		closedChan:   make(chan struct{}),
 		participants: make(map[string]*ActiveParticipant),
 		sttClient:    sttClient,
+		ttsClient:    ttsClient,
 	}
 }
 
