@@ -47,7 +47,7 @@ type LiveGPT struct {
 	participants map[string]*ActiveParticipant
 }
 
-func NewLiveGPT(config *config.Config, sttClient *stt.Client) *LiveGPT {
+func NewLiveGPT(config *config.Config, sttClient *stt.Client, ttsClient *tts.Client) *LiveGPT {
 	return &LiveGPT{
 		config:       config,
 		roomService:  lksdk.NewRoomServiceClient(config.LiveKit.Url, config.LiveKit.ApiKey, config.LiveKit.SecretKey),
