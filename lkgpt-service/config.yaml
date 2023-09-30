@@ -10,9 +10,9 @@ logging:
   level: debug
 
 livekit:
-  url: wss://my-livekit-project.livekit.cloud
-  api_key: APISzatJWKXfB5a
-  secret_key: sDH3u9WWUqX9FvoW1xZ20F9NereYOwlLyTqqb4jWIX2
+  url: wss://aimeetingassist-pkk1jfzp.livekit.cloud
+  api_key: APIKqUm7E8DNaLz
+  secret_key: wp6Mli4B2QcQpeTGkNvJpEuHznccNQmIPaubk6PsfIE
 
 openai_api_key: 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
 
