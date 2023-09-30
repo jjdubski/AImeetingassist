@@ -16,7 +16,6 @@ import (
 	"github.com/livekit-examples/livegpt/pkg/service"
 
 	stt "cloud.google.com/go/speech/apiv1"
-	tts "cloud.google.com/go/texttospeech/apiv1"
 )
 
 func main() {
@@ -84,14 +83,14 @@ func runServer(c *cli.Context) error {
 		return err
 	}
 
-	ttsClient, err := tts.NewClient(ctx, gcpCred)
+	/*ttsClient, err := tts.NewClient(ctx, gcpCred)
 	if err != nil {
 		return err
-	}
+	}*/
 
 	logger.InitFromConfig(conf.Logger, "livegpt")
 
-	server := service.NewLiveGPT(conf, sttClient, ttsClient)
+	server := service.NewLiveGPT(conf, sttClient)
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 

@@ -11,12 +11,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/livekit-examples/livegpt/pkg/config"
 	"github.com/urfave/negroni"
 
-	"github.com/livekit-examples/livegpt/pkg/config"
-	"github.com/livekit/protocol/livekit"
-
 	"github.com/livekit/protocol/auth"
+	"github.com/livekit/protocol/livekit"
 	"github.com/livekit/protocol/logger"
 	"github.com/livekit/protocol/webhook"
 
@@ -48,7 +47,7 @@ type LiveGPT struct {
 	participants map[string]*ActiveParticipant
 }
 
-func NewLiveGPT(config *config.Config, sttClient *stt.Client, ttsClient *tts.Client) *LiveGPT {
+func NewLiveGPT(config *config.Config, sttClient *stt.Client) *LiveGPT {
 	return &LiveGPT{
 		config:       config,
 		roomService:  lksdk.NewRoomServiceClient(config.LiveKit.Url, config.LiveKit.ApiKey, config.LiveKit.SecretKey),
@@ -57,7 +56,6 @@ func NewLiveGPT(config *config.Config, sttClient *stt.Client, ttsClient *tts.Cli
 		closedChan:   make(chan struct{}),
 		participants: make(map[string]*ActiveParticipant),
 		sttClient:    sttClient,
-		ttsClient:    ttsClient,
 	}
 }
 
