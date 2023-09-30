@@ -186,7 +186,7 @@ func (s *LiveGPT) joinRoom(room *livekit.Room) {
 		m.SetBody("text/plain", "This is Gomail test body")
 
 		// Settings for SMTP server
-		d := gomail.NewDialer("smtp.gmail.com", 587, "from@gmail.com", "<email_password>")
+		d := gomail.NewDialer("smtp.gmail.com", 587, "jakew122800@gmail.com", "<email_password>")
 
 		// This is only needed when SSL/TLS certificate is not valid on server.
 		// In production this should be set to false.

@@ -30,7 +30,7 @@ var (
 	BotIdentity = "KITT"
 
 	// Naive trigger/activation implementation
-	GreetingWords = []string{"gpt"}
+	GreetingWords = []string{"gpt", "AI", "A I"}
 	NameWords     = []string{"summarize"}
 
 	collatedText = ""
@@ -358,7 +358,7 @@ func (p *GPTParticipant) onTranscriptionReceived(result RecognizeResult, rp *lks
 	// 	}
 
 	if len(words) >= 2 { // No max length but only check the first 3 words
-		limit := len(words) - 1
+		limit := len(words)
 		if limit > ActivationWordsLen {
 			limit = ActivationWordsLen
 		}
