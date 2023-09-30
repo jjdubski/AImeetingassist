@@ -478,7 +478,8 @@ func (p *GPTParticipant) answer(events []*MeetingEvent, prompt *SpeechEvent, rp 
 			if errors.Is(err, io.EOF) || errors.Is(err, context.Canceled) {
 				break
 			}
-
+			fmt.Println("happy5")
+			fmt.Println(sentence, err)
 			_ = p.sendErrorPacket("Sorry, an error occured while communicating with OpenAI. It can happen when the servers are overloaded")
 			return "", err
 		}

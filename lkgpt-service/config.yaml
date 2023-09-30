@@ -14,6 +14,6 @@ livekit:
   api_key: APIKqUm7E8DNaLz
   secret_key: wp6Mli4B2QcQpeTGkNvJpEuHznccNQmIPaubk6PsfIE
 
-openai_api_key: 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
+openai_api_key: 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
 
 port: 3001
