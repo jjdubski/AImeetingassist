@@ -194,6 +194,8 @@ func (t *Transcriber) start() error {
 				}
 			}
 
+			// fmt.Println(sb.String())
+
 			t.results <- RecognizeResult{
 				Text:    sb.String(),
 				IsFinal: final,

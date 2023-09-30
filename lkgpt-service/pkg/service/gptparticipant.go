@@ -33,6 +33,8 @@ var (
 	GreetingWords = []string{"hi", "hello", "hey", "hallo", "salut", "bonjour", "hola", "eh", "ey"}
 	NameWords     = []string{"kit", "gpt", "kitt", "livekit", "live-kit", "kid"}
 
+	collatedText = ""
+
 	ActivationWordsLen = 2
 	ActivationTimeout  = 4 * time.Second // If the participant didn't say anything for this duration, stop listening
 
@@ -343,52 +345,56 @@ func (p *GPTParticipant) onTranscriptionReceived(result RecognizeResult, rp *lks
 	p.lock.Unlock()
 
 	shouldAnswer := false
-	if len(p.room.GetParticipants()) == 1 {
-		// Always answer when we're alone with KITT
-		if activeParticipant == nil {
-			activeParticipant = rp
-			p.activateParticipant(rp)
+	// if len(p.room.GetParticipants()) == 1 {
+	// 	// Always answer when we're alone with KITT
+	// 	if activeParticipant == nil {
+	// 		activeParticipant = rp
+	// 		p.activateParticipant(rp)
+	// 	}
+
+	// 	shouldAnswer = result.IsFinal
+	// } else {
+	// Check if the participant is activating the KITT
+	justActivated := false
+	words := strings.Split(strings.ToLower(strings.TrimSpace(result.Text)), " ")
+
+	if len(words) >= 2 { // No max length but only check the first 3 words
+		limit := len(words)
+		if limit > ActivationWordsLen {
+			limit = ActivationWordsLen
+		}
+		activationWords := words[:limit]
+
+		// Check if text contains at least one GreentingWords
+		greetIndex := -1
+		for _, greet := range GreetingWords {
+			if greetIndex = slices.Index(activationWords, greet); greetIndex != -1 {
+				break
+			}
 		}
 
-		shouldAnswer = result.IsFinal
-	} else {
-		// Check if the participant is activating the KITT
-		justActivated := false
-		words := strings.Split(strings.ToLower(strings.TrimSpace(result.Text)), " ")
-		if len(words) >= 2 { // No max length but only check the first 3 words
-			limit := len(words)
-			if limit > ActivationWordsLen {
-				limit = ActivationWordsLen
-			}
-			activationWords := words[:limit]
-
-			// Check if text contains at least one GreentingWords
-			greetIndex := -1
-			for _, greet := range GreetingWords {
-				if greetIndex = slices.Index(activationWords, greet); greetIndex != -1 {
-					break
-				}
-			}
-
-			nameIndex := -1
-			for _, name := range NameWords {
-				if nameIndex = slices.Index(activationWords, name); nameIndex != -1 {
-					break
-				}
-			}
-
-			if greetIndex < nameIndex && greetIndex != -1 {
-				justActivated = true
-				p.activeInterim.Store(!result.IsFinal)
-				if activeParticipant != rp {
-					activeParticipant = rp
-					logger.Debugw("activating KITT for participant", "activationText", strings.Join(activationWords, " "), "participant", rp.Identity())
-					p.activateParticipant(rp)
-				}
+		nameIndex := -1
+		for _, name := range NameWords {
+			if nameIndex = slices.Index(activationWords, name); nameIndex != -1 {
+				break
 			}
 		}
+
+		if greetIndex < nameIndex && greetIndex != -1 {
+			justActivated = true
+			p.activeInterim.Store(!result.IsFinal)
+			if activeParticipant != rp {
+				activeParticipant = rp
+				logger.Debugw("activating KITT for participant", "activationText", strings.Join(activationWords, " "), "participant", rp.Identity())
+				p.activateParticipant(rp)
+			}
+		}
+		// }
 
 		if result.IsFinal {
+			// fmt.Println(rp.Identity(), result.Text)
+			collatedText += rp.Identity() + ": " + result.Text + "\n"
+			fmt.Println(collatedText)
 			shouldAnswer = activeParticipant == rp
 			if (justActivated || p.activeInterim.Load()) && len(words) <= ActivationWordsLen+1 {
 				// Ignore if the participant stopped speaking after the activation, answer his next sentence
@@ -401,7 +407,7 @@ func (p *GPTParticipant) onTranscriptionReceived(result RecognizeResult, rp *lks
 		prompt := &SpeechEvent{
 			ParticipantName: rp.Identity(),
 			IsBot:           false,
-			Text:            result.Text,
+			Text:            collatedText,
 		}
 
 		p.lock.Lock()
@@ -473,13 +479,11 @@ func (p *GPTParticipant) answer(events []*MeetingEvent, prompt *SpeechEvent, rp 
 
 	sb := strings.Builder{}
 	for {
-		sentence, err := stream.Recv()
+		sentence := stream
 		if err != nil {
 			if errors.Is(err, io.EOF) || errors.Is(err, context.Canceled) {
 				break
 			}
-			fmt.Println("happy5")
-			fmt.Println(sentence, err)
 			_ = p.sendErrorPacket("Sorry, an error occured while communicating with OpenAI. It can happen when the servers are overloaded")
 			return "", err
 		}
