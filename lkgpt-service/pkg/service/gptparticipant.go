@@ -30,8 +30,8 @@ var (
 	BotIdentity = "KITT"
 
 	// Naive trigger/activation implementation
-	GreetingWords = []string{"hi", "hello", "hey", "hallo", "salut", "bonjour", "hola", "eh", "ey"}
-	NameWords     = []string{"kit", "gpt", "kitt", "livekit", "live-kit", "kid"}
+	GreetingWords = []string{"gpt"}
+	NameWords     = []string{"summarize"}
 
 	collatedText = ""
 
@@ -345,21 +345,20 @@ func (p *GPTParticipant) onTranscriptionReceived(result RecognizeResult, rp *lks
 	p.lock.Unlock()
 
 	shouldAnswer := false
-	// if len(p.room.GetParticipants()) == 1 {
-	// 	// Always answer when we're alone with KITT
-	// 	if activeParticipant == nil {
-	// 		activeParticipant = rp
-	// 		p.activateParticipant(rp)
-	// 	}
-
-	// 	shouldAnswer = result.IsFinal
-	// } else {
-	// Check if the participant is activating the KITT
-	justActivated := false
+	// justActivated := false
 	words := strings.Split(strings.ToLower(strings.TrimSpace(result.Text)), " ")
 
+	// if (words.("gpt summarize")) {
+	// 	p.activeInterim.Store(!result.IsFinal)
+	// 		if activeParticipant != rp {
+	// 			activeParticipant = rp
+	// 			logger.Debugw("activating KITT for participant", "activationText", strings.Join(activationWords, " "), "participant", rp.Identity())
+	// 			p.activateParticipant(rp)
+	// 		}
+	// 	}
+
 	if len(words) >= 2 { // No max length but only check the first 3 words
-		limit := len(words)
+		limit := len(words) - 1
 		if limit > ActivationWordsLen {
 			limit = ActivationWordsLen
 		}
@@ -381,7 +380,7 @@ func (p *GPTParticipant) onTranscriptionReceived(result RecognizeResult, rp *lks
 		}
 
 		if greetIndex < nameIndex && greetIndex != -1 {
-			justActivated = true
+			// justActivated = true
 			p.activeInterim.Store(!result.IsFinal)
 			if activeParticipant != rp {
 				activeParticipant = rp
@@ -396,10 +395,10 @@ func (p *GPTParticipant) onTranscriptionReceived(result RecognizeResult, rp *lks
 			collatedText += rp.Identity() + ": " + result.Text + "\n"
 			fmt.Println(collatedText)
 			shouldAnswer = activeParticipant == rp
-			if (justActivated || p.activeInterim.Load()) && len(words) <= ActivationWordsLen+1 {
-				// Ignore if the participant stopped speaking after the activation, answer his next sentence
-				shouldAnswer = false
-			}
+			// if (justActivated || p.activeInterim.Load()) && len(words) <= ActivationWordsLen+1 {
+			// 	// Ignore if the participant stopped speaking after the activation, answer his next sentence
+			// 	shouldAnswer = false
+			// }
 		}
 	}
 
@@ -478,41 +477,33 @@ func (p *GPTParticipant) answer(events []*MeetingEvent, prompt *SpeechEvent, rp 
 	})
 
 	sb := strings.Builder{}
-	for {
-		sentence := stream
-		if err != nil {
-			if errors.Is(err, io.EOF) || errors.Is(err, context.Canceled) {
-				break
-			}
-			_ = p.sendErrorPacket("Sorry, an error occured while communicating with OpenAI. It can happen when the servers are overloaded")
-			return "", err
+	sentence := stream
+
+	// Try to parse the language from the sentence (ChatGPT can provide <en-US>, en-US as a prefix)
+	trimSentence := strings.TrimSpace(sentence)
+	lowerSentence := strings.ToLower(trimSentence)
+	for code, lang := range Languages {
+		prefix1 := strings.ToLower(fmt.Sprintf("<%s>", code))
+		prefix2 := strings.ToLower(code)
+
+		if strings.HasPrefix(lowerSentence, prefix1) {
+			trimSentence = trimSentence[len(prefix1):]
+		} else if strings.HasPrefix(lowerSentence, prefix2) {
+			trimSentence = trimSentence[len(prefix2):]
+		} else {
+			continue
 		}
 
-		// Try to parse the language from the sentence (ChatGPT can provide <en-US>, en-US as a prefix)
-		trimSentence := strings.TrimSpace(sentence)
-		lowerSentence := strings.ToLower(trimSentence)
-		for code, lang := range Languages {
-			prefix1 := strings.ToLower(fmt.Sprintf("<%s>", code))
-			prefix2 := strings.ToLower(code)
+		language = lang
+		break
+	}
 
-			if strings.HasPrefix(lowerSentence, prefix1) {
-				trimSentence = trimSentence[len(prefix1):]
-			} else if strings.HasPrefix(lowerSentence, prefix2) {
-				trimSentence = trimSentence[len(prefix2):]
-			} else {
-				continue
-			}
+	sb.WriteString(trimSentence)
+	sb.WriteString(" ")
 
-			language = lang
-			break
-		}
-
-		sb.WriteString(trimSentence)
-		sb.WriteString(" ")
-
-		tmpLast := last
-		tmpLang := language
-		currentCh := make(chan struct{})
+	tmpLast := last
+	tmpLang := language
+	currentCh := make(chan struct{})
 
 		wg.Add(1)
 		go func() {
@@ -521,29 +512,29 @@ func (p *GPTParticipant) answer(events []*MeetingEvent, prompt *SpeechEvent, rp 
 			logger.Debugw("synthesizing", "sentence", trimSentence)
 			fmt.Println(p.synthesizer, p.ctx, trimSentence, tmpLang)
 			resp, err := p.synthesizer.Synthesize(p.ctx, trimSentence, tmpLang)
+			fmt.Println(resp, err)
 			if err != nil {
 				logger.Errorw("failed to synthesize", err, "sentence", trimSentence)
 				_ = p.sendErrorPacket("Sorry, an error occured while synthesizing voice data using Google TTS")
 				return
 			}
 
-			if tmpLast != nil {
-				<-tmpLast // Reorder outputs
-			}
+		if tmpLast != nil {
+			<-tmpLast // Reorder outputs
+		}
 
-			logger.Debugw("finished synthesizing, queuing sentence", "sentence", trimSentence)
-			err = p.gptTrack.QueueReader(bytes.NewReader(resp.AudioContent))
-			if err != nil {
-				logger.Errorw("failed to queue reader", err, "sentence", trimSentence)
-				return
-			}
+		logger.Debugw("finished synthesizing, queuing sentence", "sentence", trimSentence)
+		err = p.gptTrack.QueueReader(bytes.NewReader(resp.AudioContent))
+		if err != nil {
+			logger.Errorw("failed to queue reader", err, "sentence", trimSentence)
+			return
+		}
 
-			_ = p.sendStatePacket(state_Speaking)
-			wg.Add(1)
-		}()
+		_ = p.sendStatePacket(state_Speaking)
+		wg.Add(1)
+	}()
 
 		last = currentCh
-		break
 	}
 
 	wg.Wait()
