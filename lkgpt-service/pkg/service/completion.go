@@ -10,7 +10,7 @@ import (
 	"time"
 
 	lksdk "github.com/livekit/server-sdk-go"
-	openai "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai"
 )
 
 // A sentence in the conversation (Used for the history)
