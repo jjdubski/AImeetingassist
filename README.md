@@ -35,7 +35,7 @@ The `meet` service is a NextJS app that implements a typical video call app. The
 
 To run, you'll need to run the `lkgt-service` service.
 
-1. Locally, run lkgpt-service by entering the following command into a CLI:
+1. Locally, run lkgpt-service by entering the following command into a CLI:<br>
         ```bash
         # From the lkgpt-service/ directory
         go run /cmd/server/main.go --config config.yaml --gcp-credentials-path gcp-credentials.json`
