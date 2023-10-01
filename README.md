@@ -19,11 +19,8 @@ This repo contains two services:
 1. meet
 2. lkgpt-service
 
-The `meet` service is a NextJS app that implements a typical video call app. The `lkgpt-service` implements KITT. When a room is created, a webhook calls a handler in `lkgpt-service` which adds a participant to the room. The particpant uses GCP's speech-to-text, ChatGPT, and GCP's text-to-speech to create KITT.
+The `meet` service is a NextJS app that implements a typical video call app. The `lkgpt-service` implements KITT. When a room is created, a webhook calls a handler in `lkgpt-service` which adds a participant to the room. The particpant uses GCP's speech-to-text, a pretrained Hugging Face model, and GCP's text-to-speech to create KITT.
 
-The following diagram illustrates this:
-
-![kitt-demo-architecture](https://user-images.githubusercontent.com/8453967/231060467-a2984951-71d9-45f4-ad5d-9eb35be229de.svg)
 
 ## Getting started
 
