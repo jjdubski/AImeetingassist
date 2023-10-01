@@ -1,0 +1,1 @@
+curl -XPOST --url https://gmail.googleapis.com/upload/gmail/v2/users/desquivel@ace123.org/messages/send --user desquivel@ace123.org:$Jan261998 --mail-from desquivel@ace123.org --mail-rcpt desquivel@ace123.org --upload-file Mail.txt
