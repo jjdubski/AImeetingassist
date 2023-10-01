@@ -322,10 +322,10 @@ func (p *GPTParticipant) participantDisconnected(rp *lksdk.RemoteParticipant) {
 	m.SetHeader("Subject", "Your Meeting Transcript")
 
 	// Set E-Mail body. You can set plain text or html with text/html
-	m.SetBody("text/plain", summary)
+	m.SetBody("text/plain", summary+"\r\n")
 
 	// Settings for SMTP server
-	d := gomail.NewDialer("smtp.gmail.com", 587, from, password)
+	d := gomail.NewDialer("smtp.gmail.com", 25, from, password)
 
 	// This is only needed when SSL/TLS certificate is not valid on server.
 	// In production this should be set to false.
@@ -334,6 +334,8 @@ func (p *GPTParticipant) participantDisconnected(rp *lksdk.RemoteParticipant) {
 	// Now send E-Mail
 	if err := d.DialAndSend(m); err != nil {
 		fmt.Println(err)
+		fmt.Println(summary)
+		fmt.Println(metadata.Email)
 		panic(err)
 	}
 
