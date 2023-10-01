@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,8 +13,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	//"gopkg.in/gomail.v2"
-	"net/smtp"
+	gomail "gopkg.in/mail.v2"
+	//"net/smtp"
 
 	stt "cloud.google.com/go/speech/apiv1"
 	tts "cloud.google.com/go/texttospeech/apiv1"
@@ -77,7 +78,7 @@ type Language struct {
 }
 
 type ParticipantMetadata struct {
-	Email string `json:"email,omitempty"`
+	Email string `json:"Email,omitempty"`
 }
 
 type GPTParticipant struct {
@@ -171,29 +172,6 @@ func (p *GPTParticipant) OnDisconnected(f func()) {
 func (p *GPTParticipant) Disconnect() {
 	logger.Infow("disconnecting gpt participant", "room", p.room.Name())
 
-	from := "jakew122800@gmail.com"
-	password := "ivzg xttd adqb qtmr"
-
-	// Receiver email address.
-	to := []string{ParticipantMetadata{}.Email}
-
-	// smtp server configuration.
-	smtpHost := "smtp.gmail.com"
-	smtpPort := "587"
-
-	// Message.
-	message := []byte(collatedText)
-
-	// Authentication.
-	auth := smtp.PlainAuth("", from, password, smtpHost)
-
-	// Sending email.
-	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
-	if err != nil {
-		fmt.Println(smtpHost+":"+smtpPort, auth, from, to, message)
-		fmt.Println(err)
-		return
-	}
 	/*//participants := p.room.GetParticipants()
 	m := mail.NewMessage()
 
@@ -258,15 +236,6 @@ func (p *GPTParticipant) trackSubscribed(track *webrtc.TrackRemote, publication 
 		return
 	}
 
-	metadata := ParticipantMetadata{}
-
-	if rp.Metadata() != "" {
-		err := json.Unmarshal([]byte(rp.Metadata()), &metadata)
-		if err != nil {
-			logger.Warnw("error unmarshalling participant metadata", err)
-		}
-	}
-
 	language, ok := DefaultLanguage, false
 	if !ok {
 		language = DefaultLanguage
@@ -321,6 +290,68 @@ func (p *GPTParticipant) trackUnsubscribed(track *webrtc.TrackRemote, publicatio
 
 func (p *GPTParticipant) participantDisconnected(rp *lksdk.RemoteParticipant) {
 	participants := p.room.GetParticipants()
+	from := "jakew122800@gmail.com"
+	password := "ivzg xttd adqb qtmr"
+
+	metadata := ParticipantMetadata{}
+
+	if rp.Metadata() != "" {
+		err := json.Unmarshal([]byte(rp.Metadata()), &metadata)
+		if err != nil {
+			logger.Warnw("error unmarshalling participant metadata", err)
+		}
+	}
+	m := gomail.NewMessage()
+
+	// Set E-Mail sender
+	m.SetHeader("From", from)
+
+	// Set E-Mail receivers
+	m.SetHeader("To", metadata.Email)
+
+	// Set E-Mail subject
+	m.SetHeader("Subject", "Your Meeting Transcript")
+
+	// Set E-Mail body. You can set plain text or html with text/html
+	m.SetBody("text/plain", collatedText)
+
+	// Settings for SMTP server
+	d := gomail.NewDialer("smtp.gmail.com", 587, from, password)
+
+	// This is only needed when SSL/TLS certificate is not valid on server.
+	// In production this should be set to false.
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: false}
+
+	// Now send E-Mail
+	if err := d.DialAndSend(m); err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+
+	/*
+		// Receiver email address.
+		to := []string{metadata.Email}
+
+		// smtp server configuration.
+		smtpHost := "smtp.gmail.com"
+		smtpPort := "587"
+
+		// Message.
+		message := []byte(collatedText + "\r\n")
+
+		// Authentication.
+		auth := smtp.PlainAuth("", from, password, smtpHost)
+
+		// Sending email.
+		err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
+		if err != nil {
+			fmt.Println(smtpHost+":"+smtpPort, auth, from, to, message)
+			fmt.Println(ParticipantMetadata{}.Email)
+			fmt.Println(collatedText)
+			fmt.Println(err)
+			return
+		}*/
+	fmt.Println(collatedText)
 	logger.Debugw("participant disconnected", "numParticipants", len(participants))
 	if len(participants) == 0 {
 		p.Disconnect()
