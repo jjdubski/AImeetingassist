@@ -14,6 +14,10 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
+var (
+	url = "https://api-inference.huggingface.co/models/tclopess/bart_samsum"
+)
+
 // A sentence in the conversation (Used for the history)
 type SpeechEvent struct {
 	ParticipantName string
@@ -64,7 +68,7 @@ func (c *ChatCompletion) Complete(ctx context.Context, events []*MeetingEvent, p
 	comp := prompt.Text
 	fmt.Println("comp:", comp)
 
-	url := "https://api-inference.huggingface.co/models/knkarthick/MEETING_SUMMARY"
+	// url := "https://api-inference.huggingface.co/models/knkarthick/MEETING_SUMMARY"
 	payload := []byte(fmt.Sprintf(`{"inputs": "%s"}`, comp))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
@@ -99,12 +103,13 @@ func (c *ChatCompletion) Complete(ctx context.Context, events []*MeetingEvent, p
 		return "", err
 	}
 
-	// Access the parsed data
+	responseData := ""
 	for _, info := range respData {
 		fmt.Println("Summary Text:", info.SummaryText)
+		responseData = info.SummaryText + "\n"
 	}
 
-	return respData[0].SummaryText, nil
+	return responseData, nil
 
 }
 
@@ -114,7 +119,7 @@ func summarize(text string) (string, error) {
 	fmt.Println("comp:", comp)
 
 	// url := "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
-	url := "https://api-inference.huggingface.co/models/knkarthick/MEETING_SUMMARY"
+	// url := "https://api-inference.huggingface.co/models/knkarthick/MEETING_SUMMARY"
 	payload := []byte(fmt.Sprintf(`{"inputs": "%s"}`, comp))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
@@ -149,10 +154,11 @@ func summarize(text string) (string, error) {
 		return "", err
 	}
 
-	// Access the parsed data
+	responseData := ""
 	for _, info := range respData {
 		fmt.Println("Summary Text:", info.SummaryText)
+		responseData = info.SummaryText + "\n"
 	}
 
-	return respData[0].SummaryText, nil
+	return responseData, nil
 }
