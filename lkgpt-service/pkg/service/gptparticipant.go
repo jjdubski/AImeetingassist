@@ -3,12 +3,10 @@ package service
 import (
 	"bytes"
 	"context"
-	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -17,7 +15,6 @@ import (
 	//"gopkg.in/gomail.v2"
 	"net/smtp"
 
-	"cloud.google.com/go/compute/metadata"
 	stt "cloud.google.com/go/speech/apiv1"
 	tts "cloud.google.com/go/texttospeech/apiv1"
 	"github.com/pion/webrtc/v3"
@@ -29,7 +26,6 @@ import (
 )
 
 var (
-	myEmail              = metadata.Email
 	ErrCodecNotSupported = errors.New("this codec isn't supported")
 	ErrBusy              = errors.New("the gpt participant is already used")
 
@@ -175,59 +171,29 @@ func (p *GPTParticipant) OnDisconnected(f func()) {
 func (p *GPTParticipant) Disconnect() {
 	logger.Infow("disconnecting gpt participant", "room", p.room.Name())
 
-	emailApPassword := "Password122800"
-	yourMail := "jakew122800@gmail.com"
-	recipient := "jakew122800@gmail.com"
-	hostAddress := "smtp.gmail.com"
-	hostPort := "25"
-	mailSubject := "Meeting Transcript"
-	mailBody := collatedText
-	fullServerAddress := hostAddress + ":" + hostPort
+	from := "jakew122800@gmail.com"
+	password := "ivzg xttd adqb qtmr"
 
-	headerMap := make(map[string]string)
-	headerMap["From"] = yourMail
-	headerMap["To"] = recipient
-	headerMap["Subject"] = mailSubject
-	mailMessage := ""
-	for k, v := range headerMap {
+	// Receiver email address.
+	to := []string{ParticipantMetadata{}.Email}
 
-		mailMessage += fmt.Sprintf("%s: %s\\r", k, v)
+	// smtp server configuration.
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
 
-	}
-	mailMessage += "\\r" + mailBody
+	// Message.
+	message := []byte(collatedText)
 
-	authenticate := smtp.PlainAuth("", yourMail, emailApPassword, hostAddress)
+	// Authentication.
+	auth := smtp.PlainAuth("", from, password, smtpHost)
 
-	tlsConfigurations := &tls.Config{
-		InsecureSkipVerify: true,
-		ServerName:         hostAddress,
-	}
-
-	conn, err := tls.Dial("tcp", fullServerAddress, tlsConfigurations)
-
+	// Sending email.
+	err := smtp.SendMail(smtpHost+":"+smtpPort, auth, from, to, message)
 	if err != nil {
-		log.Panic(err)
+		fmt.Println(smtpHost+":"+smtpPort, auth, from, to, message)
+		fmt.Println(err)
+		return
 	}
-
-	newClient, err := smtp.NewClient(conn, hostAddress)
-	if err != nil {
-		log.Panic(err)
-	}
-
-	// Auth
-	if err = newClient.Auth(authenticate); err != nil {
-		log.Panic(err)
-	}
-
-	// To && From
-	if err = newClient.Mail(yourMail); err != nil {
-		log.Panic(err)
-	}
-
-	if err = newClient.Rcpt(headerMap["To"]); err != nil {
-		log.Panic(err)
-	}
-
 	/*//participants := p.room.GetParticipants()
 	m := mail.NewMessage()
 

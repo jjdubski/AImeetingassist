@@ -70,7 +70,7 @@ const ActiveRoom = ({ roomName, userChoices, onLeave }: ActiveRoomProps) => {
     userInfo: {
       identity: userChoices.username,
       name: userChoices.username,
-      metadata: JSON.stringify({ email: userChoices.email }),
+      metadata: JSON.stringify({ Email: userChoices.email }),
     },
   });
 
