@@ -2,7 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/tls"
 	"errors"
 	"fmt"
 	"net"
@@ -11,8 +10,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"gopkg.in/gomail.v2"
 
 	"github.com/livekit-examples/livegpt/pkg/config"
 	"github.com/urfave/negroni"
@@ -171,32 +168,6 @@ func (s *LiveGPT) joinRoom(room *livekit.Room) {
 
 	p.OnDisconnected(func() {
 		logger.Infow("gpt participant disconnected", "room", room.Name)
-		m := gomail.NewMessage()
-
-		// Set E-Mail sender
-		m.SetHeader("From", "from@gmail.com")
-
-		// Set E-Mail receivers
-		m.SetHeader("To", "to@example.com")
-
-		// Set E-Mail subject
-		m.SetHeader("Subject", "Gomail test subject")
-
-		// Set E-Mail body. You can set plain text or html with text/html
-		m.SetBody("text/plain", "This is Gomail test body")
-
-		// Settings for SMTP server
-		d := gomail.NewDialer("smtp.gmail.com", 587, "jakew122800@gmail.com", "<email_password>")
-
-		// This is only needed when SSL/TLS certificate is not valid on server.
-		// In production this should be set to false.
-		d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
-
-		// Now send E-Mail
-		if err := d.DialAndSend(m); err != nil {
-			fmt.Println(err)
-			panic(err)
-		}
 		s.lock.Lock()
 		delete(s.participants, room.Sid)
 		s.lock.Unlock()

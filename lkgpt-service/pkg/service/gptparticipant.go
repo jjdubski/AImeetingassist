@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"context"
+	"crypto/tls"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -12,6 +13,9 @@ import (
 	"sync/atomic"
 	"time"
 
+	"gopkg.in/gomail.v2"
+
+	"cloud.google.com/go/compute/metadata"
 	stt "cloud.google.com/go/speech/apiv1"
 	tts "cloud.google.com/go/texttospeech/apiv1"
 	"github.com/pion/webrtc/v3"
@@ -23,6 +27,7 @@ import (
 )
 
 var (
+	myEmail              = metadata.Email
 	ErrCodecNotSupported = errors.New("this codec isn't supported")
 	ErrBusy              = errors.New("the gpt participant is already used")
 
@@ -74,7 +79,7 @@ type Language struct {
 }
 
 type ParticipantMetadata struct {
-	LanguageCode string `json:"languageCode,omitempty"`
+	Email string `json:"email,omitempty"`
 }
 
 type GPTParticipant struct {
@@ -167,6 +172,32 @@ func (p *GPTParticipant) OnDisconnected(f func()) {
 
 func (p *GPTParticipant) Disconnect() {
 	logger.Infow("disconnecting gpt participant", "room", p.room.Name())
+	//participants := p.room.GetParticipants()
+	m := gomail.NewMessage()
+
+	// Set E-Mail sender
+	m.SetHeader("From", myEmail)
+	// Set E-Mail receivers
+	m.SetHeader("To", myEmail)
+
+	// Set E-Mail subject
+	m.SetHeader("Subject", "Meeting Summary")
+
+	// Set E-Mail body. You can set plain text or html with text/html
+	m.SetBody("text/plain", collatedText)
+
+	// Settings for SMTP server
+	d := gomail.NewDialer("smtp.gmail.com", 25, "jakew122800@gmail.com", "Password122800")
+
+	// This is only needed when SSL/TLS certificate is not valid on server.
+	// In production this should be set to false.
+	d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+	// Now send E-Mail
+	if err := d.DialAndSend(m); err != nil {
+		fmt.Println(err)
+		panic(err)
+	}
+
 	p.room.Disconnect()
 
 	for _, transcriber := range p.transcribers {
@@ -205,6 +236,7 @@ func (p *GPTParticipant) trackSubscribed(track *webrtc.TrackRemote, publication 
 	}
 
 	metadata := ParticipantMetadata{}
+
 	if rp.Metadata() != "" {
 		err := json.Unmarshal([]byte(rp.Metadata()), &metadata)
 		if err != nil {
@@ -212,7 +244,7 @@ func (p *GPTParticipant) trackSubscribed(track *webrtc.TrackRemote, publication 
 		}
 	}
 
-	language, ok := Languages[metadata.LanguageCode]
+	language, ok := DefaultLanguage, false
 	if !ok {
 		language = DefaultLanguage
 	}
