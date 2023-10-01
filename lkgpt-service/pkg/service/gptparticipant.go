@@ -297,8 +297,6 @@ func (p *GPTParticipant) participantDisconnected(rp *lksdk.RemoteParticipant) {
 		return
 	}
 
-	fmt.Printf("Summary: %s", summary)
-
 	participants := p.room.GetParticipants()
 	from := "jakew122800@gmail.com"
 	password := "ivzg xttd adqb qtmr"
