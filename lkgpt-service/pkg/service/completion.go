@@ -15,7 +15,8 @@ import (
 )
 
 var (
-	url = "https://api-inference.huggingface.co/models/tclopess/bart_samsum"
+	url = "https://api-inference.huggingface.co/models/knkarthick/MEETING_SUMMARY"
+	// url = "https://api-inference.huggingface.co/models/tclopess/bart_samsum"
 )
 
 // A sentence in the conversation (Used for the history)
@@ -47,7 +48,8 @@ func NewChatCompletion(client *openai.Client) *ChatCompletion {
 }
 
 type ResponseData struct {
-	SummaryText string `json:"generated_text"`
+	SummaryText string `json:"summary_text"`
+	// SummaryText string `json:"generated_text"`
 }
 
 func (c *ChatCompletion) Complete(ctx context.Context, events []*MeetingEvent, prompt *SpeechEvent,
@@ -68,7 +70,6 @@ func (c *ChatCompletion) Complete(ctx context.Context, events []*MeetingEvent, p
 	comp := prompt.Text
 	fmt.Println("comp:", comp)
 
-	// url := "https://api-inference.huggingface.co/models/knkarthick/MEETING_SUMMARY"
 	payload := []byte(fmt.Sprintf(`{"inputs": "%s"}`, comp))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
