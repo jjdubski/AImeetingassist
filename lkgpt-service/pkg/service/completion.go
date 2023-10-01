@@ -47,7 +47,7 @@ func NewChatCompletion(client *openai.Client) *ChatCompletion {
 }
 
 type ResponseData struct {
-	SummaryText string `json:"summary_text"`
+	SummaryText string `json:"generated_text"`
 }
 
 func (c *ChatCompletion) Complete(ctx context.Context, events []*MeetingEvent, prompt *SpeechEvent,
