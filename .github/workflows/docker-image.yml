@@ -9,14 +9,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Set up Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v3
         with:
-          node-version: 16
+          node-version: 18
+      - name: Setup Git Config
+      - run: |
+          git config user.name "GitHub Actions Bot"
+          git config user.email "<>"
+        
       - name: Install dependencies
-        run: npm install
+        run: npm ci
       - name: Build app
         run: npm run build
       - name: Run app
         run: docker run -p 3000:3000 jjwaksmanski/aimeetingassist
+        run: echo ::set-output name=tag::$(echo $(node -p -e "require('./package.json').version"))
+        
+      - name: Increase version
+        run: npm version patch
+        
+      - name: Push new version
+        run: git push
+      
+      - name: Login to DockerHub Registry
+        run: echo ${{ secrets.DOCKERHUB_PASSWORD }} | docker login -u ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+        
+      - name: Build Docker image
+        run: docker build . --file Dockerfile --tag jjwaksmanski/aimeetingassist:${{steps.version.outputs.tag}}
+        
+      - name: Push to Docker Hub
+        run: docker push jjwaksmanski/aimeetingassist:${{steps.version.outputs.tag}}
