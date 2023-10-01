@@ -36,10 +36,10 @@ The `meet` service is a NextJS app that implements a typical video call app. The
 To run locally, you'll need to run the `lkgt-service` service.
 
 1. Locally, run lkgpt-service Locally:
-```bash
-# From the lkgpt-service/ directory
-go run /cmd/server/main.go --config config.yaml --gcp-credentials-path gcp-credentials.json`
-```
+        ```bash
+        # From the lkgpt-service/ directory
+        go run /cmd/server/main.go --config config.yaml --gcp-credentials-path gcp-credentials.json`
+        ```
 1. Go to <https://kittplus.vercel.app/rooms/3qjq-2itk> in your browser and enter your name & email.
 1. Once the `lkgt-service` service is running, you can navigate back to your browser. There's one more step needed when running locally. When deployed, KITT is spawned via a LiveKit webhook, but locally - the webhook will have no way of reaching your local `lkgpt-service` that's running. So you'll have to manually call an API to spawn KITT:
 ```bash
