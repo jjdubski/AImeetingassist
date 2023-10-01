@@ -31,11 +31,11 @@ The `meet` service is a NextJS app that implements a typical video call app. The
 - LiveKit api_key, api_secret, and url from [LiveKit Cloud](https://cloud.livekit.io)
 - Go 1.19+ and Node.js
 
-### Running Locally
+### Running
 
-To run locally, you'll need to run the `lkgt-service` service.
+To run, you'll need to run the `lkgt-service` service.
 
-1. Locally, run lkgpt-service Locally:
+1. Locally, run lkgpt-service by entering the following command into a CLI:
         ```bash
         # From the lkgpt-service/ directory
         go run /cmd/server/main.go --config config.yaml --gcp-credentials-path gcp-credentials.json`
