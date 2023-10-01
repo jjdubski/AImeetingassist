@@ -64,7 +64,7 @@ func (c *ChatCompletion) Complete(ctx context.Context, events []*MeetingEvent, p
 	comp := prompt.Text
 	fmt.Println("comp:", comp)
 
-	url := "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
+	url := "https://api-inference.huggingface.co/models/knkarthick/MEETING_SUMMARY"
 	payload := []byte(fmt.Sprintf(`{"inputs": "%s"}`, comp))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
@@ -113,8 +113,8 @@ func summarize(text string) (string, error) {
 	comp := text
 	fmt.Println("comp:", comp)
 
-	url := "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
-	// url := "https://api-inference.huggingface.co/models/knkarthick/MEETING_SUMMARY"
+	// url := "https://api-inference.huggingface.co/models/facebook/bart-large-cnn"
+	url := "https://api-inference.huggingface.co/models/knkarthick/MEETING_SUMMARY"
 	payload := []byte(fmt.Sprintf(`{"inputs": "%s"}`, comp))
 
 	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
