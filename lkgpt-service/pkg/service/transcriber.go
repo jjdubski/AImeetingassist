@@ -117,7 +117,7 @@ func (t *Transcriber) start() error {
 		// Forward oggreader to the speech stream
 		go func() {
 			defer close(nextCh)
-			buf := make([]byte, 1024)
+			buf := make([]byte, 5120)
 			for {
 				select {
 				case <-endStreamCh:
