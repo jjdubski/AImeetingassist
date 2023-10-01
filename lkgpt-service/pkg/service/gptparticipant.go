@@ -301,6 +301,7 @@ func (p *GPTParticipant) participantDisconnected(rp *lksdk.RemoteParticipant) {
 			logger.Warnw("error unmarshalling participant metadata", err)
 		}
 	}
+	//Set New Message
 	m := gomail.NewMessage()
 
 	// Set E-Mail sender
