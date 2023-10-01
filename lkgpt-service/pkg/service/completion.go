@@ -109,3 +109,51 @@ func (c *ChatCompletion) Complete(ctx context.Context, events []*MeetingEvent, p
 	return respData[0].SummaryText, nil
 
 }
+
+func summarize(text string) (string, error) {
+
+	comp := text
+	fmt.Println("comp:", comp)
+
+	url := "https://api-inference.huggingface.co/models/knkarthick/MEETING_SUMMARY"
+	payload := []byte(fmt.Sprintf(`{"inputs": "%s"}`, comp))
+
+	req, err := http.NewRequest("POST", url, bytes.NewBuffer(payload))
+	if err != nil {
+		fmt.Println("Error creating request:", err)
+		return "", err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", "Bearer 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")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		fmt.Println("Error sending request:", err.Error())
+		return "", err
+	}
+	defer resp.Body.Close()
+
+	fmt.Println("Response Status:", resp.Status)
+
+	body, readErr := ioutil.ReadAll(resp.Body)
+	if readErr != nil {
+		fmt.Print(err.Error())
+	}
+	fmt.Println(string(body))
+
+	var respData []ResponseData
+
+	err = json.Unmarshal(body, &respData)
+	if err != nil {
+		fmt.Println("Error:", err)
+		return "", err
+	}
+
+	// Access the parsed data
+	for _, info := range respData {
+		fmt.Println("Summary Text:", info.SummaryText)
+	}
+
+	return respData[0].SummaryText, nil
+}

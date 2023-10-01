@@ -289,6 +289,14 @@ func (p *GPTParticipant) trackUnsubscribed(track *webrtc.TrackRemote, publicatio
 }
 
 func (p *GPTParticipant) participantDisconnected(rp *lksdk.RemoteParticipant) {
+
+	summary, err := summarize(collatedText)
+
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	participants := p.room.GetParticipants()
 	from := "jakew122800@gmail.com"
 	password := "ivzg xttd adqb qtmr"
@@ -314,7 +322,7 @@ func (p *GPTParticipant) participantDisconnected(rp *lksdk.RemoteParticipant) {
 	m.SetHeader("Subject", "Your Meeting Transcript")
 
 	// Set E-Mail body. You can set plain text or html with text/html
-	m.SetBody("text/plain", collatedText)
+	m.SetBody("text/plain", summary)
 
 	// Settings for SMTP server
 	d := gomail.NewDialer("smtp.gmail.com", 587, from, password)
