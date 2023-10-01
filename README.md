@@ -36,13 +36,13 @@ The `meet` service is a NextJS app that implements a typical video call app. The
 To run, you'll need to run the `lkgt-service` service.
 
 1. Locally, run lkgpt-service by entering the following command into a CLI:<br>
-        ```bash
-        # From the lkgpt-service/ directory
-        go run /cmd/server/main.go --config config.yaml --gcp-credentials-path gcp-credentials.json`
-        ```
-1. Go to <https://kittplus.vercel.app/rooms/3qjq-2itk> in your browser and enter your name & email.
-1. Once the `lkgt-service` service is running, you can navigate back to your browser. There's one more step needed when running locally. When deployed, KITT is spawned via a LiveKit webhook, but locally - the webhook will have no way of reaching your local `lkgpt-service` that's running. So you'll have to manually call an API to spawn KITT:
-        ```bash
-        # <room_name> comes from the url slug when you enter a room in the UI
-        curl -XPOST http://localhost:3001/join/<room_name>
-        ```
+```bash
+# From the lkgpt-service/ directory
+go run /cmd/server/main.go --config config.yaml --gcp-credentials-path gcp-credentials.json`
+```
+2. Go to https://kittplus.vercel.app/rooms/<room_name> in your browser and enter your name & email.
+2. Once the `lkgt-service` service is running, you can navigate back to your browser. There's one more step needed when running locally. When deployed, KITT is spawned via a LiveKit webhook, but locally - the webhook will have no way of reaching your local `lkgpt-service` that's running. So you'll have to manually call an API to spawn KITT:
+```bash
+# <room_name> comes from the url slug when you enter a room in the UI
+curl -XPOST http://localhost:3001/join/<room_name>
+```
