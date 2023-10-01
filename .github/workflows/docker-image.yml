@@ -24,8 +24,9 @@ jobs:
       - name: Build app
         run: npm run build
       - name: Run app
-        run: docker run -p 3000:3000 jjwaksmanski/aimeetingassist
-        run: echo ::set-output name=tag::$(echo $(node -p -e "require('./package.json').version"))
+        run: |
+            docker run -p 3000:3000 jjwaksmanski/aimeetingassist
+            echo ::set-output name=tag::$(echo $(node -p -e "require('./package.json').version"))
         
       - name: Increase version
         run: npm version patch
