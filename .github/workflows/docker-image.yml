@@ -1,4 +1,4 @@
-name: Run React and Go App
+name: Run App
 
 on:
   push:
