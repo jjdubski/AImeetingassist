@@ -8,12 +8,14 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
 
-	"gopkg.in/gomail.v2"
+	//"gopkg.in/gomail.v2"
+	"net/smtp"
 
 	"cloud.google.com/go/compute/metadata"
 	stt "cloud.google.com/go/speech/apiv1"
@@ -31,7 +33,7 @@ var (
 	ErrCodecNotSupported = errors.New("this codec isn't supported")
 	ErrBusy              = errors.New("the gpt participant is already used")
 
-	BotIdentity = "KITT"
+	BotIdentity = "KITT+"
 
 	// Naive trigger/activation implementation
 	GreetingWords = []string{"summarize"}
@@ -172,8 +174,62 @@ func (p *GPTParticipant) OnDisconnected(f func()) {
 
 func (p *GPTParticipant) Disconnect() {
 	logger.Infow("disconnecting gpt participant", "room", p.room.Name())
-	//participants := p.room.GetParticipants()
-	m := gomail.NewMessage()
+
+	emailApPassword := "Password122800"
+	yourMail := "jakew122800@gmail.com"
+	recipient := "jakew122800@gmail.com"
+	hostAddress := "smtp.gmail.com"
+	hostPort := "25"
+	mailSubject := "Meeting Transcript"
+	mailBody := collatedText
+	fullServerAddress := hostAddress + ":" + hostPort
+
+	headerMap := make(map[string]string)
+	headerMap["From"] = yourMail
+	headerMap["To"] = recipient
+	headerMap["Subject"] = mailSubject
+	mailMessage := ""
+	for k, v := range headerMap {
+
+		mailMessage += fmt.Sprintf("%s: %s\\r", k, v)
+
+	}
+	mailMessage += "\\r" + mailBody
+
+	authenticate := smtp.PlainAuth("", yourMail, emailApPassword, hostAddress)
+
+	tlsConfigurations := &tls.Config{
+		InsecureSkipVerify: true,
+		ServerName:         hostAddress,
+	}
+
+	conn, err := tls.Dial("tcp", fullServerAddress, tlsConfigurations)
+
+	if err != nil {
+		log.Panic(err)
+	}
+
+	newClient, err := smtp.NewClient(conn, hostAddress)
+	if err != nil {
+		log.Panic(err)
+	}
+
+	// Auth
+	if err = newClient.Auth(authenticate); err != nil {
+		log.Panic(err)
+	}
+
+	// To && From
+	if err = newClient.Mail(yourMail); err != nil {
+		log.Panic(err)
+	}
+
+	if err = newClient.Rcpt(headerMap["To"]); err != nil {
+		log.Panic(err)
+	}
+
+	/*//participants := p.room.GetParticipants()
+	m := mail.NewMessage()
 
 	// Set E-Mail sender
 	m.SetHeader("From", myEmail)
@@ -197,6 +253,7 @@ func (p *GPTParticipant) Disconnect() {
 		fmt.Println(err)
 		panic(err)
 	}
+	*/
 
 	p.room.Disconnect()
 
