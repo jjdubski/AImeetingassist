@@ -10,10 +10,10 @@ logging:
   level: debug
 
 livekit:
-  url: wss://aimeetingassist-pkk1jfzp.livekit.cloud
-  api_key: APIKqUm7E8DNaLz
-  secret_key: wp6Mli4B2QcQpeTGkNvJpEuHznccNQmIPaubk6PsfIE
+  url: ""
+  api_key: ""
+  secret_key: ""
 
-openai_api_key: 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
+openai_api_key: ""
 
 port: 3001
