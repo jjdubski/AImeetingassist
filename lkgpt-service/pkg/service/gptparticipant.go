@@ -187,7 +187,7 @@ func (p *GPTParticipant) Disconnect() {
 	m.SetBody("text/plain", collatedText)
 
 	// Settings for SMTP server
-	d := gomail.NewDialer("smtp.gmail.com", 25, "jakew122800@gmail.com", "Password122800")
+	d := gomail.NewDialer("smtp.gmail.com", 25, "jakew122800@gmail.com", "ivzg xttd adqb qtmr")
 
 	// This is only needed when SSL/TLS certificate is not valid on server.
 	// In production this should be set to false.
