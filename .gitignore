@@ -1,0 +1,6 @@
+#local keys
+lkgpt-service/gcp-credentials_local.json
+lkgpt-service/config_local.yaml
+
+#docker
+.github/workflows/docker-image.yml
