@@ -3,6 +3,10 @@
 #docker
 .github/workflows/docker-image.yml
 
+#local keys
+./lkgpt-service/gcp-credentials_local.json
+./lkgpt-service/config_local.yaml
+
 # dependencies
 /node_modules
 /.pnp
